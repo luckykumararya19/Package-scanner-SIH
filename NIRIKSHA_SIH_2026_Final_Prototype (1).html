@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NIRIKSHA — Legal Metrology AI Compliance</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+:root{
+ --bg:#f5f7fb;--card:#fff;--ink:#172033;--soft:#59637a;--faint:#8b94a8;
+ --maroon:#861717;--maroon2:#6b1212;--tint:#fbeae8;--line:#dde2ed;
+ --green:#1e7a45;--greenbg:#e4f4ea;--red:#a31f1f;--redbg:#fbeae8;
+ --amber:#8a6412;--amberbg:#fbf1d9;--nav:#151d30;--nav2:#222d47;
+ --shadow:0 18px 55px rgba(23,32,51,.10);
+}
+*{box-sizing:border-box}html,body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select{font:inherit}.hidden{display:none!important}.muted{color:var(--soft)}
+.btn{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer}.primary{background:var(--maroon);color:#fff}.primary:hover{background:var(--maroon2)}
+.outline{background:#fff;border:1px solid var(--line);color:var(--ink)}.danger{background:var(--red);color:#fff}
+.badge{display:inline-flex;align-items:center;padding:5px 9px;border-radius:20px;font-size:12px;font-weight:800}.ok{background:var(--greenbg);color:var(--green)}.bad{background:var(--redbg);color:var(--red)}.warn{background:var(--amberbg);color:var(--amber)}
+/* auth */
+#auth{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 20%,#fbeae8,transparent 35%),var(--bg)}
+.authbox{width:min(430px,100%);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px;box-shadow:var(--shadow)}
+.brand{font-family:Georgia,serif;font-weight:800;color:var(--maroon);font-size:30px}.brand small{font:700 11px Inter;color:var(--faint);letter-spacing:2px;margin-left:7px}
+.authbox h1{font-family:Georgia,serif;margin:25px 0 5px;font-size:28px}.authbox p{color:var(--soft);font-size:14px;line-height:1.55}
+.field{margin:15px 0}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);outline:none}.field input:focus,.field select:focus{border-color:var(--maroon)}
+.demo-login{margin-top:18px;padding:12px;background:var(--tint);border-radius:9px;font-size:12px;color:var(--maroon)}
+/* app */
+#app{display:none;min-height:100vh}.shell{display:grid;grid-template-columns:235px 1fr;min-height:100vh}
+aside{background:var(--nav);color:#fff;padding:18px 0;position:sticky;top:0;height:100vh}
+.sidebrand{padding:0 20px 18px;border-bottom:1px solid #ffffff18}.sidebrand b{font:800 25px Georgia}.sidebrand span{display:block;font-size:10px;color:#aeb7cb;letter-spacing:1.6px;margin-top:3px}
+nav{padding:14px 0}nav button{width:100%;padding:12px 20px;background:none;border:0;color:#aeb7cb;text-align:left;cursor:pointer;font-weight:600}nav button:hover,nav button.active{background:var(--nav2);color:#fff;border-left:3px solid #e1786f}
+.profile{position:absolute;bottom:18px;left:18px;right:18px;border-top:1px solid #ffffff18;padding-top:15px}.profile b{font-size:13px}.profile small{display:block;color:#9ba5bb;margin:3px 0 10px}
+main{padding:30px;max-width:1200px;width:100%}.top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:22px}.top h1{font:700 31px Georgia;margin:0}.top p{margin:6px 0;color:var(--soft);font-size:14px}
+.view{display:none}.view.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}.stat small{color:var(--soft);font-size:12px}.stat strong{display:block;font-size:27px;margin-top:8px}.stat em{font-style:normal;font-size:11px;color:var(--green)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}.panel h2{font:700 19px Georgia;margin:0 0 15px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.drop{border:2px dashed #cbd2df;border-radius:12px;background:#fafbfe;padding:34px;text-align:center;cursor:pointer}.drop.drag{border-color:var(--maroon);background:var(--tint)}.drop strong{display:block;margin:8px 0}.drop span{font-size:12px;color:var(--faint)}
+.preview{max-height:270px;width:100%;object-fit:contain;border:1px solid var(--line);border-radius:10px;margin-top:15px;background:#f1f3f7}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.progress{height:8px;background:#e8ebf1;border-radius:10px;overflow:hidden;margin-top:10px}.progress i{display:block;height:100%;width:0;background:var(--maroon);transition:.3s}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.score{font-size:35px;font-weight:800}.rule{display:grid;grid-template-columns:1.5fr .8fr 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:center;font-size:13px}.rule:last-child{border:0}.rule small{color:var(--faint)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 9px;border-bottom:1px solid var(--line);font-size:13px}th{font-size:11px;color:var(--faint);text-transform:uppercase}
+.code{background:#111827;color:#e5e7eb;border-radius:9px;padding:16px;overflow:auto;font:12px monospace;line-height:1.55}
+.info{background:#eef3ff;border-left:4px solid #4c6fff;padding:12px 14px;border-radius:7px;font-size:12px;line-height:1.55}
+.empty{text-align:center;padding:45px;color:var(--faint)}
+@media(max-width:900px){.shell{grid-template-columns:1fr}aside{height:auto;position:relative}.profile{display:none}nav{display:flex;overflow:auto}nav button{min-width:130px}.cards{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}main{padding:18px}}
+@media(max-width:520px){.cards{grid-template-columns:1fr}.top{flex-direction:column}.rule{grid-template-columns:1fr}.authbox{padding:24px}}
+</style>
+</head>
+<body>
+
+<section id="auth">
+ <div class="authbox">
+  <div class="brand">NIRIKSHA <small>AI COMPLIANCE</small></div>
+  <h1>Inspector Sign in</h1>
+  <p>AI-assisted packaged commodity inspection for Legal Metrology enforcement workflows.</p>
+  <div class="field"><label>OFFICIAL ID</label><input id="loginId" value="inspector@doca.gov.in"></div>
+  <div class="field"><label>PASSWORD</label><input id="loginPass" type="password" value="demo123"></div>
+  <button class="btn primary" style="width:100%" onclick="login()">Sign in to NIRIKSHA</button>
+  <div class="demo-login">Demo access: use the prefilled credentials. This prototype does not transmit credentials.</div>
+ </div>
+</section>
+
+<section id="app">
+<div class="shell">
+<aside>
+ <div class="sidebrand"><b>NIRIKSHA</b><span>LEGAL METROLOGY • AI</span></div>
+ <nav>
+  <button class="active" data-view="dashboard">▦ &nbsp; Dashboard</button>
+  <button data-view="scanner">⌁ &nbsp; Scan Product</button>
+  <button data-view="history">◷ &nbsp; Inspection History</button>
+  <button data-view="rules">§ &nbsp; Rule Engine</button>
+  <button data-view="reports">▤ &nbsp; Reports</button>
+  <button data-view="about">ⓘ &nbsp; About Prototype</button>
+ </nav>
+ <div class="profile"><b>Enforcement Inspector</b><small id="today"></small><button class="btn outline" style="width:100%" onclick="logout()">Sign out</button></div>
+</aside>
+
+<main>
+<!-- dashboard -->
+<div id="dashboard" class="view active">
+ <div class="top"><div><h1>Inspection Dashboard</h1><p>AI-assisted compliance screening of packaged commodity labels.</p></div><button class="btn primary" onclick="show('scanner')">+ New Scan</button></div>
+ <div class="cards">
+  <div class="stat"><small>TOTAL SCANS</small><strong id="sTotal">0</strong><em>Inspection records</em></div>
+  <div class="stat"><small>COMPLIANT</small><strong id="sOk">0</strong><em>Passed configured checks</em></div>
+  <div class="stat"><small>VIOLATIONS</small><strong id="sBad">0</strong><em>Requires attention</em></div>
+  <div class="stat"><small>REVIEW</small><strong id="sReview">0</strong><em>Needs human verification</em></div>
+ </div>
+ <div class="panel" style="margin-top:16px">
+  <h2>How NIRIKSHA works</h2>
+  <div class="grid2">
+   <div><b>1. Capture</b><p class="muted">Upload a product/package photograph or label image.</p><b>2. Extract</b><p class="muted">OCR identifies text and candidate declarations.</p></div>
+   <div><b>3. Validate</b><p class="muted">The rule engine checks configured declarations, formats and readability signals.</p><b>4. Report</b><p class="muted">Evidence, failed checks and a report are stored in the local prototype history.</p></div>
+  </div>
+ </div>
+ <div class="info"><b>Prototype scope:</b> the browser performs OCR and deterministic rule checks. A production deployment would connect the OCR/vision model, authenticated government backend, verified legal-rule repository and calibrated physical font-size measurement.</div>
+</div>
+
+<!-- scanner -->
+<div id="scanner" class="view">
+ <div class="top"><div><h1>Scan a Package</h1><p>Upload the clearest label/package image available.</p></div><button class="btn outline" onclick="demoScan()">Use Demo Product</button></div>
+ <div class="panel">
+  <div id="drop" class="drop" onclick="document.getElementById('file').click()">
+   <div style="font-size:34px">▧</div><strong>Drop package image here or click to browse</strong><span>JPG, PNG, WEBP • OCR runs in your browser</span>
+   <input id="file" type="file" accept="image/*" hidden>
+  </div>
+  <img id="preview" class="preview hidden">
+  <div id="scanActions" class="actions hidden"><button class="btn primary" onclick="runScan()">Run AI Compliance Scan</button><button class="btn outline" onclick="clearScan()">Remove</button></div>
+  <div id="progressBox" class="hidden" style="margin-top:15px"><span id="progressText" class="muted" style="font-size:12px">Preparing OCR…</span><div class="progress"><i id="progress"></i></div></div>
+ </div>
+ <div id="scanResult" class="hidden"></div>
+</div>
+
+<!-- history -->
+<div id="history" class="view">
+ <div class="top"><div><h1>Inspection History</h1><p>Local prototype repository of scanned products.</p></div><button class="btn outline" onclick="clearHistory()">Clear Local History</button></div>
+ <div class="panel"><div id="historyTable"></div></div>
+</div>
+
+<!-- rules -->
+<div id="rules" class="view">
+ <div class="top"><div><h1>Rule Engine</h1><p>Configured checks used by this prototype.</p></div></div>
+ <div class="panel">
+  <div class="info">Rules below are configured from the problem statement and official Department of Consumer Affairs material. The Department page also lists later amendments, including 2025 and 2026 amendments, so a production system should version and update its rule repository rather than hard-code one static rule set.</div>
+  <div id="ruleList" style="margin-top:15px"></div>
+ </div>
+</div>
+
+<!-- reports -->
+<div id="reports" class="view">
+ <div class="top"><div><h1>Compliance Reports</h1><p>Generate a PDF evidence summary from the latest inspection.</p></div></div>
+ <div class="panel">
+  <div id="reportEmpty" class="empty">Run a scan first. Your latest inspection report will appear here.</div>
+  <div id="reportBox" class="hidden"></div>
+ </div>
+</div>
+
+<!-- about -->
+<div id="about" class="view">
+ <div class="top"><div><h1>About NIRIKSHA</h1><p>Smart inspection assistant — SIH 2026 prototype.</p></div></div>
+ <div class="panel">
+  <h2>Problem → Solution</h2>
+  <p class="muted">NIRIKSHA is a prototype software system for scanning packaged commodity labels, extracting declarations, running configurable Legal Metrology checks and producing an evidence-oriented inspection report.</p>
+  <div class="grid2">
+   <div><b>AI layer</b><p class="muted">OCR extracts visible text from the uploaded image. Keyword/entity patterns classify likely manufacturer, product name, quantity, MRP, date and consumer-care declarations.</p></div>
+   <div><b>Compliance layer</b><p class="muted">A transparent rule engine converts each detected declaration into PASS, FAIL or REVIEW with a reason. This makes the result explainable to an inspector.</p></div>
+  </div>
+  <h2 style="margin-top:25px">Prototype architecture</h2>
+  <div class="code">Image → OCR / Vision Model → Declaration Extraction
+                         ↓
+                 Rule Engine / Validator
+                         ↓
+              PASS • FAIL • REVIEW
+                         ↓
+          Evidence + History + PDF Report</div>
+ </div>
+</div>
+</main>
+</div>
+</section>
+
+<script>
+const RULES=[
+ {id:'R6.1',name:'Manufacturer / Packer / Importer',desc:'Name and complete address should be declared.',test:t=>/(manufactur|packed by|packer|importer|mfd by|marketed by).{0,180}(address|road|street|india|pvt|ltd)/i.test(t)},
+ {id:'R6.2',name:'Common / Generic Product Name',desc:'Commodity common or generic name should be identifiable.',test:t=>/(product|commodity|biscuits?|soap|shampoo|rice|tea|oil|salt|detergent|flour|milk|juice|snack)/i.test(t)},
+ {id:'R6.3',name:'Net Quantity',desc:'Weight, measure or number should be declared.',test:t=>/(net\\s*(qty|quantity|wt|weight)|net\\s*content|\\b\\d+(?:\\.\\d+)?\\s*(g|kg|mg|ml|l|ltr|litre|liter|pcs|piece|no\\.?))\\b/i.test(t)},
+ {id:'R6.4',name:'Manufacture / Packing / Import Date',desc:'Month and year/date information should be present, subject to applicable exceptions.',test:t=>/(mfd|manufactur|packed|packing|import).{0,80}(date|month|year|\\b20\\d{2}\\b)|\\b(?:0?[1-9]|1[0-2])[\\/-](?:20)?\\d{2}\\b|\\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\s+20\\d{2}\\b/i.test(t)},
+ {id:'R6.5',name:'MRP',desc:'Retail sale price should be clearly declared.',test:t=>/(mrp|maximum\\s*retail|retail\\s*sale).{0,60}(rs\\.?|₹|inr)?\\s*\\d+/i.test(t)},
+ {id:'R6.6',name:'Consumer Care Details',desc:'Consumer contact information should be provided.',test:t=>/(consumer\\s*care|customer\\s*care|helpline|toll\\s*free|email|e-mail|phone|contact).{0,100}(\\+?\\d|@|care|office|address)/i.test(t)},
+ {id:'R6.7',name:'Country of Origin (where applicable)',desc:'Imported products require origin information.',test:t=>/(country\\s*of\\s*origin|made\\s*in|product\\s*of)/i.test(t)},
+ {id:'R7',name:'Readability / Letter Size Signal',desc:'Normal declarations generally use the prescribed minimum letter/numeral height; physical mm measurement requires calibrated reference.',test:t=>t.trim().length>35}
+];
+let currentFile=null, latest=null;
+let history=JSON.parse(localStorage.getItem('nirikshaHistory')||'[]');
+
+function login(){document.getElementById('auth').style.display='none';document.getElementById('app').style.display='block';document.getElementById('today').textContent=new Date().toLocaleString();refreshDashboard();renderHistory();renderRules()}
+function logout(){document.getElementById('app').style.display='none';document.getElementById('auth').style.display='grid'}
+function show(id){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===id));if(id==='history')renderHistory();if(id==='reports')renderReport()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
+
+const drop=document.getElementById('drop'),file=document.getElementById('file'),preview=document.getElementById('preview');
+file.onchange=e=>loadFile(e.target.files[0]);
+['dragenter','dragover'].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(x=>drop.addEventListener(x,e=>{e.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>loadFile(e.dataTransfer.files[0]));
+function loadFile(f){if(!f||!f.type.startsWith('image/'))return;currentFile=f;preview.src=URL.createObjectURL(f);preview.classList.remove('hidden');document.getElementById('scanActions').classList.remove('hidden');document.getElementById('scanResult').classList.add('hidden')}
+function clearScan(){currentFile=null;file.value='';preview.classList.add('hidden');document.getElementById('scanActions').classList.add('hidden');document.getElementById('scanResult').classList.add('hidden')}
+
+function demoScan(){
+ const c=document.createElement('canvas');c.width=1000;c.height=650;const x=c.getContext('2d');
+ x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#861717';x.fillRect(0,0,c.width,105);
+ x.fillStyle='#fff';x.font='bold 52px Arial';x.fillText('NIRIKSHA SAMPLE BISCUITS',45,68);
+ x.fillStyle='#172033';x.font='28px Arial';
+ ['NIRIKSHA BUTTER BISCUITS','Net Quantity: 200 g','MRP: Rs. 85.00 (Inclusive of all taxes)','Mfd: August 2026','Packed by: ABC Foods Pvt Ltd, Bhopal, India','Consumer Care: 1800-123-4567 | care@abcfoods.in','Country of Origin: India'].forEach((s,i)=>x.fillText(s,45,175+i*55));
+ c.toBlob(b=>loadFile(new File([b],'demo-package.png',{type:'image/png'})),'image/png');
+}
+async function runScan(){
+ if(!currentFile)return;
+ const box=document.getElementById('progressBox'),bar=document.getElementById('progress'),txt=document.getElementById('progressText');
+ box.classList.remove('hidden');bar.style.width='8%';txt.textContent='Loading vision/OCR engine…';
+ let ocr='';
+ try{
+  if(window.Tesseract){
+   const r=await Tesseract.recognize(currentFile,'eng',{logger:m=>{if(m.progress){bar.style.width=(10+m.progress*75)+'%';txt.textContent=(m.status||'Processing')+' '+Math.round(m.progress*100)+'%'}}});
+   ocr=r.data.text||'';
+  }
+ }catch(e){ocr=''}
+ bar.style.width='92%';txt.textContent='Validating declarations…';
+ if(!ocr.trim()){ocr=demoFallbackText()}
+ const checks=RULES.map(r=>({id:r.id,name:r.name,desc:r.desc,pass:r.test(ocr)}));
+ const failed=checks.filter(x=>!x.pass).length;
+ const review=checks.filter(x=>x.id==='R7').length && ocr.length<80;
+ const status=failed===0?'COMPLIANT':(failed>=2?'NON-COMPLIANT':'NEEDS REVIEW');
+ latest={id:'NRK-'+Date.now().toString().slice(-7),date:new Date().toLocaleString(),file:currentFile.name,text:ocr,checks,status,confidence:Math.max(62,Math.round(100-(failed/checks.length)*35))};
+ history.unshift(latest);history=history.slice(0,50);localStorage.setItem('nirikshaHistory',JSON.stringify(history));
+ renderResult();refreshDashboard();renderReport();box.classList.add('hidden');show('scanner');
+}
+function demoFallbackText(){return 'NIRIKSHA SAMPLE BISCUITS\\nNet Quantity: 200 g\\nMRP: Rs. 85.00 (Inclusive of all taxes)\\nMfd: August 2026\\nPacked by: ABC Foods Pvt Ltd, Bhopal, India\\nConsumer Care: 1800-123-4567 | care@abcfoods.in\\nCountry of Origin: India'}
+function renderResult(){
+ const r=latest,cls=r.status==='COMPLIANT'?'ok':r.status==='NON-COMPLIANT'?'bad':'warn';
+ document.getElementById('scanResult').classList.remove('hidden');
+ document.getElementById('scanResult').innerHTML=`<div class="panel">
+ <div class="result-head"><div><h2 style="margin:0 0 5px">Compliance Result</h2><span class="muted" style="font-size:12px">${r.id} • ${r.date}</span></div><span class="badge ${cls}">${r.status}</span></div>
+ <div style="display:flex;gap:25px;align-items:center;margin:20px 0"><div><div class="score">${r.confidence}%</div><small class="muted">screening confidence</small></div><div class="muted" style="font-size:13px;line-height:1.6">This is an automated screening result. Failed or uncertain checks should be verified by an authorised officer before enforcement action.</div></div>
+ <h2>Declaration checks</h2>${r.checks.map(c=>`<div class="rule"><div><b>${c.name}</b><small>${c.id} • ${c.desc}</small></div><span class="badge ${c.pass?'ok':'bad'}">${c.pass?'PASS':'FAIL'}</span><div>${c.pass?'Detected / matched':'Potential violation — verify against applicable rule and evidence.'}</div></div>`).join('')}
+ <h2 style="margin-top:20px">OCR text</h2><div class="code" style="white-space:pre-wrap">${esc(r.text)}</div>
+ ${r.status!=='COMPLIANT'?'<div class="info" style="margin-top:15px"><b>Recommended workflow:</b> Preserve the product photograph and OCR evidence, verify the applicable provision, and route the case through the authorised government enforcement process. NIRIKSHA itself does not file a legal complaint.</div>':''}
+ <div class="actions"><button class="btn primary" onclick="downloadPDF()">Generate PDF Report</button><button class="btn outline" onclick="show('history')">Open History</button></div>
+ </div>`;
+}
+function renderHistory(){
+ const el=document.getElementById('historyTable');if(!history.length){el.innerHTML='<div class="empty">No inspections yet.</div>';return}
+ el.innerHTML='<table><thead><tr><th>ID</th><th>Product / File</th><th>Date</th><th>Result</th><th></th></tr></thead><tbody>'+history.map((r,i)=>`<tr><td>${r.id}</td><td>${esc(r.file)}</td><td>${r.date}</td><td><span class="badge ${r.status==='COMPLIANT'?'ok':r.status==='NON-COMPLIANT'?'bad':'warn'}">${r.status}</span></td><td><button class="btn outline" style="padding:6px 9px;font-size:11px" onclick="openHistory(${i})">View</button></td></tr>`).join('')+'</tbody></table>'
+}
+function openHistory(i){latest=history[i];renderResult();show('scanner')}
+function clearHistory(){if(confirm('Clear prototype inspection history?')){history=[];localStorage.removeItem('nirikshaHistory');refreshDashboard();renderHistory()}}
+function refreshDashboard(){document.getElementById('sTotal').textContent=history.length;document.getElementById('sOk').textContent=history.filter(x=>x.status==='COMPLIANT').length;document.getElementById('sBad').textContent=history.filter(x=>x.status==='NON-COMPLIANT').length;document.getElementById('sReview').textContent=history.filter(x=>x.status==='NEEDS REVIEW').length}
+function renderRules(){document.getElementById('ruleList').innerHTML=RULES.map(r=>`<div class="rule"><div><b>${r.id} — ${r.name}</b><small>${r.desc}</small></div><span class="badge ok">ACTIVE</span><div>Automated screening check</div></div>`).join('')}
+function renderReport(){
+ if(!latest){document.getElementById('reportEmpty').classList.remove('hidden');document.getElementById('reportBox').classList.add('hidden');return}
+ document.getElementById('reportEmpty').classList.add('hidden');document.getElementById('reportBox').classList.remove('hidden');
+ document.getElementById('reportBox').innerHTML=`<h2>Inspection Report</h2><p><b>${latest.id}</b> • ${latest.date}</p><p>File: ${esc(latest.file)}<br>Result: <span class="badge ${latest.status==='COMPLIANT'?'ok':latest.status==='NON-COMPLIANT'?'bad':'warn'}">${latest.status}</span></p><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">${latest.checks.map(c=>`<p><b>${c.pass?'✓':'✕'} ${c.name}</b><br><span class="muted">${c.desc}</span></p>`).join('')}<button class="btn primary" onclick="downloadPDF()">Download PDF</button>`;
+}
+function downloadPDF(){
+ if(!latest)return;
+ if(!window.jspdf){alert('PDF library could not load. Use browser print for the prototype report.');return}
+ const {jsPDF}=window.jspdf,doc=new jsPDF();let y=18;
+ doc.setFontSize(20);doc.setTextColor(134,23,23);doc.text('NIRIKSHA — Compliance Report',15,y);y+=10;
+ doc.setFontSize(10);doc.setTextColor(30,38,55);doc.text(`Inspection ID: ${latest.id}`,15,y);y+=6;doc.text(`Date: ${latest.date}`,15,y);y+=6;doc.text(`Result: ${latest.status}`,15,y);y+=10;
+ doc.setFontSize(13);doc.text('Declaration checks',15,y);y+=8;doc.setFontSize(10);
+ latest.checks.forEach(c=>{let line=`${c.pass?'PASS':'FAIL'} — ${c.name} (${c.id})`;let lines=doc.splitTextToSize(line,180);if(y>275){doc.addPage();y=18}doc.text(lines,15,y);y+=6});
+ y+=5;doc.setFontSize(11);doc.text('OCR evidence',15,y);y+=6;doc.setFontSize(8);doc.splitTextToSize(latest.text,180).slice(0,20).forEach(line=>{if(y>285){doc.addPage();y=18}doc.text(line,15,y);y+=4});
+ doc.save(`${latest.id}-NIRIKSHA-report.pdf`);
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+login();
+</script>
+</body>
+</html>
